@@ -1,0 +1,10 @@
+Short
+A bit longer
+This is a line of text
+This is an even longer line of text
+Tiny
+Medium length line
+Quite a long line of text indeed
+Short again
+Another medium length line
+The longest line of text in this file, for sure!
