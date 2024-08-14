@@ -6,8 +6,8 @@ An indication. The list item is a string. Use the Len_trim function.
 ## Additional requirements:
 ### Necessarily:
 * encapsulation
-* the next field to be placed
+* the next field to be allocatable
 ### If necessary (depends on the task):
 * inheritance
 * polymorphism
-* the completed function (if necessary, delete the structure in the task)
+* finalization procedure (if necessary, delete the structure in the task)
