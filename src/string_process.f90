@@ -3,6 +3,8 @@ module String_Process
    use String_IO
 
    implicit none
+
+   public :: Sort_Lines
    
 contains
    ! Добавляем новую процедуру Sort_Lines

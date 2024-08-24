@@ -4,10 +4,12 @@ module String_IO
    implicit none
    
    ! Структура данных для хранения строки.
-   type StringNode
+   type :: StringNode
       character(:, CH_), allocatable   :: String
       type(StringNode), pointer        :: Next  => Null()
    end type StringNode
+
+   public :: Read_Lines, Output_Lines
 
 contains
    ! Чтение исходного кода. 
