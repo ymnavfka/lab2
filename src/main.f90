@@ -8,8 +8,7 @@
 
 program lab_2
    use Environment
-   use String_IO
-   use String_Process
+   use String
 
    implicit none
    character(:), allocatable :: input_file, output_file
@@ -17,7 +16,7 @@ program lab_2
    
    input_file  = "../data/input.txt"
    output_file = "output.txt"
-   
+
    StrNode => Read_Lines(input_file)
    call Output_Lines(output_file, StrNode, "Исходный файл:", "rewind")
 

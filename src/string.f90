@@ -1,4 +1,4 @@
-module String_IO
+module String
    use Environment
 
    implicit none
@@ -9,7 +9,7 @@ module String_IO
       type(StringNode), pointer        :: Next  => Null()
    end type StringNode
 
-   public :: Read_Lines, Output_Lines
+   public :: Read_Lines, Output_Lines, Sort_Lines
 
 contains
    ! Чтение исходного кода. 
@@ -48,7 +48,7 @@ contains
    ! Вывод исходного кода.
    subroutine Output_Lines(OutputFile, StrNode, List_name, Position)
       character(*), intent(in)      :: OutputFile, List_name, Position
-      type(StringNode), intent(in)  :: StrNode 
+      type(StringNode), pointer, intent(in)  :: StrNode 
       integer :: Out
       
       open (file=OutputFile, position=Position, newunit=Out)
@@ -60,12 +60,60 @@ contains
    ! Вывод строки исходного кода.
    recursive subroutine Output_One_Line(Out, StrNode)
       integer, intent(in)           :: Out
-      type(StringNode), intent(in)  :: StrNode
+      type(StringNode), pointer, intent(in)  :: StrNode
       integer :: IO
 
-      write (Out, "(a)", iostat=IO) StrNode%String
-      call Handle_IO_Status(IO, "writing line")
-      if (Associated(StrNode%next)) &
-         call Output_One_Line(Out, StrNode%next)
+      if (associated(StrNode)) then
+         write (Out, "(a)", iostat=IO) StrNode%String
+         call Handle_IO_Status(IO, "writing line")
+      else
+         return
+      end if
+      call Output_One_Line(Out, StrNode%next)
    end subroutine Output_One_Line
-end module String_IO 
+
+   subroutine Sort_Lines(head)
+      type(StringNode), pointer :: head, sorted, temp
+
+      if (associated(head)) then
+         temp => head
+         head => head%Next
+         sorted => temp
+         sorted%Next => null()
+      else
+         return
+      end if
+
+      call Sort_Lines_By_Length(head, sorted)
+
+      head => sorted
+   end subroutine Sort_Lines
+
+   ! Процедура сортировки списка вставками
+   recursive subroutine Sort_Lines_By_Length(current, sorted)
+      type(StringNode), pointer :: current, sorted, next
+
+      if (associated(current)) then
+         next => current%Next
+         call InsertNodeSorted(current, sorted)
+         call Sort_Lines_By_Length(next, sorted)  ! Хвостовая рекурсия
+      end if
+   end subroutine Sort_Lines_By_Length
+
+   ! Процедура вставки элемента в отсортированный список
+   recursive subroutine InsertNodeSorted(notSorted, sorted)
+      type(StringNode), pointer :: notSorted, sorted
+
+      ! Найдем место для вставки и вставим
+      if (len_trim(sorted%String) < len_trim(notSorted%String)) then
+         notSorted%Next => sorted
+         sorted => notSorted
+      else if (.not. associated(sorted%Next)) then
+         sorted%Next => notSorted
+         notSorted%Next => null()
+      else
+         call InsertNodeSorted(notSorted, sorted%Next)
+      end if
+   end subroutine InsertNodeSorted
+
+end module String
