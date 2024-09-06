@@ -5,8 +5,8 @@ module String
    
    ! Структура данных для хранения строки.
    type :: StringNode
-      character(:, CH_), allocatable   :: String
-      type(StringNode), pointer        :: Next  => Null()
+      character(:, CH_), allocatable :: String
+      type(StringNode), allocatable  :: Next
    end type StringNode
 
    public :: Read_Lines, Output_Lines, Sort_Lines
@@ -14,42 +14,42 @@ module String
 contains
    ! Чтение исходного кода. 
    function Read_Lines(InputFile) result (StrNode)
-      type(StringNode), pointer  :: StrNode
-      character(*), intent(in)   :: InputFile
-      integer  :: In
-      
+      type(StringNode), allocatable :: StrNode
+      character(*), intent(in)      :: InputFile
+      integer                       :: In
+     
       open (file=InputFile, newunit=In)
-         StrNode => Read_One_Line(in)
+         call Read_One_Line(in, StrNode)
       close (In)
    end function Read_Lines
 
    ! Чтение строки исходного кода.
-   recursive function Read_One_Line(in) result(StrNode)
-      type(StringNode), pointer  :: StrNode
-      integer, intent(in)        :: In
-      integer, parameter         :: max_len = 1024
-      character(max_len, CH_)    :: string
-      integer :: IO
+   recursive subroutine Read_One_Line(in, StrNode)
+      type(StringNode), allocatable :: StrNode
+      integer, intent(in)           :: In
+      integer, parameter            :: max_len = 1024
+      character(max_len, CH_)       :: string
+      integer                       :: IO
 
+      allocate(StrNode)
       ! Чтение строки во временную строку бОльшей длины.
       read (In, "(a)", iostat=IO) string
       call Handle_IO_Status(IO, "reading line from file")
       if (IO == 0) then
-         allocate (StrNode)
          ! Хранение в размещаемом поле символов без завершающих пробелов.
-         StrNode%String = Trim(string)
-         StrNode%Next => Read_One_Line(In)
+         StrNode%String = trim(string)
+         call Read_One_Line(In, StrNode%Next)
       else
-         StrNode => Null()
+         deallocate(StrNode)
       end if
-   end function Read_One_Line
+   end subroutine Read_One_Line
 
 
    ! Вывод исходного кода.
    subroutine Output_Lines(OutputFile, StrNode, List_name, Position)
       character(*), intent(in)      :: OutputFile, List_name, Position
-      type(StringNode), pointer, intent(in)  :: StrNode 
-      integer :: Out
+      type(StringNode), allocatable :: StrNode 
+      integer                       :: Out
       
       open (file=OutputFile, position=Position, newunit=Out)
          write(Out, '(/a)') List_name
@@ -60,41 +60,40 @@ contains
    ! Вывод строки исходного кода.
    recursive subroutine Output_One_Line(Out, StrNode)
       integer, intent(in)           :: Out
-      type(StringNode), pointer, intent(in)  :: StrNode
+      type(StringNode), allocatable, intent(in)  :: StrNode
       integer :: IO
 
-      if (associated(StrNode)) then
+      if (allocated(StrNode)) then
          write (Out, "(a)", iostat=IO) StrNode%String
          call Handle_IO_Status(IO, "writing line")
-      else
-         return
+         call Output_One_Line(Out, StrNode%next)
       end if
-      call Output_One_Line(Out, StrNode%next)
    end subroutine Output_One_Line
 
    subroutine Sort_Lines(head)
-      type(StringNode), pointer :: head, sorted, temp
+      type(StringNode), allocatable :: head, sorted, temp
 
-      if (associated(head)) then
-         temp => head
-         head => head%Next
-         sorted => temp
-         sorted%Next => null()
+      if (allocated(head%Next)) then
+         allocate(sorted)
+         sorted%String = head%String
+         temp = head%Next
+         head%String = temp%String
+         head%Next = temp%Next
       else
          return
       end if
 
       call Sort_Lines_By_Length(head, sorted)
 
-      head => sorted
+      head = sorted
    end subroutine Sort_Lines
 
    ! Процедура сортировки списка вставками
    recursive subroutine Sort_Lines_By_Length(current, sorted)
-      type(StringNode), pointer :: current, sorted, next
+      type(StringNode), allocatable :: current, sorted, next
 
-      if (associated(current)) then
-         next => current%Next
+      if (allocated(current)) then
+         next = current%Next
          call InsertNodeSorted(current, sorted)
          call Sort_Lines_By_Length(next, sorted)  ! Хвостовая рекурсия
       end if
@@ -102,15 +101,17 @@ contains
 
    ! Процедура вставки элемента в отсортированный список
    recursive subroutine InsertNodeSorted(notSorted, sorted)
-      type(StringNode), pointer :: notSorted, sorted
+      type(StringNode), allocatable :: notSorted, sorted, temp
 
       ! Найдем место для вставки и вставим
       if (len_trim(sorted%String) < len_trim(notSorted%String)) then
-         notSorted%Next => sorted
-         sorted => notSorted
-      else if (.not. associated(sorted%Next)) then
-         sorted%Next => notSorted
-         notSorted%Next => null()
+         temp = sorted
+         sorted%String = notSorted%String
+         allocate(sorted%Next)
+         sorted%Next = temp
+      else if (.not. allocated(sorted%Next)) then
+         allocate(sorted%Next)
+         sorted%Next%String = notSorted%String
       else
          call InsertNodeSorted(notSorted, sorted%Next)
       end if

@@ -12,12 +12,12 @@ program lab_2
 
    implicit none
    character(:), allocatable :: input_file, output_file
-   type(StringNode), pointer :: StrNode => Null()
+   type(StringNode), allocatable :: StrNode
    
    input_file  = "../data/input.txt"
    output_file = "output.txt"
 
-   StrNode => Read_Lines(input_file)
+   StrNode = Read_Lines(input_file)
    call Output_Lines(output_file, StrNode, "Исходный файл:", "rewind")
 
    call Sort_Lines(StrNode) 
