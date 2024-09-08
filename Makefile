@@ -1,5 +1,5 @@
 FC=gfortran
-FFLAGS=-Wall -std=f2008ts -fimplicit-none -Wno-maybe-uninitialized -Wno-unused-function -static-libgfortran -flto -mavx2
+FFLAGS= -Wall -std=f2008ts -fimplicit-none -Wno-maybe-uninitialized -Wno-unused-function -static-libgfortran -flto -mavx2
 FOPT=-O3 -ftree-vectorize -fopt-info-vec
 
 all:

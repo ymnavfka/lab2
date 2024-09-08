@@ -74,28 +74,29 @@ contains
       type(StringNode), allocatable :: head, sorted, temp
 
       if (allocated(head%Next)) then
+         ! Помещаем в sorted первый элемент изначального списка
          allocate(sorted)
          sorted%String = head%String
-         temp = head%Next
-         head%String = temp%String
-         head%Next = temp%Next
+
+         ! Сдвигаем изначальный список на 1 элемент 
+         call move_alloc(head%Next, temp)
+         call move_alloc(temp, head)
       else
          return
       end if
 
       call Sort_Lines_By_Length(head, sorted)
 
-      head = sorted
+      call move_alloc(sorted, head)
    end subroutine Sort_Lines
 
    ! Процедура сортировки списка вставками
    recursive subroutine Sort_Lines_By_Length(current, sorted)
-      type(StringNode), allocatable :: current, sorted, next
+      type(StringNode), allocatable :: current, sorted
 
       if (allocated(current)) then
-         next = current%Next
          call InsertNodeSorted(current, sorted)
-         call Sort_Lines_By_Length(next, sorted)  ! Хвостовая рекурсия
+         call Sort_Lines_By_Length(current%Next, sorted)  ! Хвостовая рекурсия
       end if
    end subroutine Sort_Lines_By_Length
 
@@ -105,14 +106,17 @@ contains
 
       ! Найдем место для вставки и вставим
       if (len_trim(sorted%String) < len_trim(notSorted%String)) then
-         temp = sorted
+         ! Вставляем перед текущим элементом
+         call move_alloc(sorted, temp)
+         allocate(sorted)
          sorted%String = notSorted%String
-         allocate(sorted%Next)
-         sorted%Next = temp
+         call move_alloc(temp, sorted%Next)
       else if (.not. allocated(sorted%Next)) then
+         ! Вставляем в конец списка
          allocate(sorted%Next)
          sorted%Next%String = notSorted%String
       else
+         ! Переходим к следующему элементу
          call InsertNodeSorted(notSorted, sorted%Next)
       end if
    end subroutine InsertNodeSorted

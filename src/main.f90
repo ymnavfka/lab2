@@ -18,6 +18,7 @@ program lab_2
    output_file = "output.txt"
 
    StrNode = Read_Lines(input_file)
+
    call Output_Lines(output_file, StrNode, "Исходный файл:", "rewind")
 
    call Sort_Lines(StrNode) 
