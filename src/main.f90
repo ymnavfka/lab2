@@ -12,16 +12,16 @@ program lab_2
 
    implicit none
    character(:), allocatable :: input_file, output_file
-   type(StringNode), allocatable :: StrNode
+   type(StringList) :: StrList
    
    input_file  = "../data/input.txt"
    output_file = "output.txt"
 
-   StrNode = Read_Lines(input_file)
+   call StrList%Read_Lines(input_file)
 
-   call Output_Lines(output_file, StrNode, "Исходный файл:", "rewind")
+   call StrList%Output_Lines(output_file, "Исходный файл:", "rewind")
 
-   call Sort_Lines(StrNode) 
+   call StrList%Sort_Lines() 
    
-   call Output_Lines(output_file, StrNode, "Отсортированный файл:", "append")
+   call StrList%Output_Lines(output_file, "Отсортированный файл:", "append")
 end program lab_2

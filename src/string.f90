@@ -9,19 +9,28 @@ module String
       type(StringNode), allocatable  :: Next
    end type StringNode
 
-   public :: Read_Lines, Output_Lines, Sort_Lines
+   type StringList
+      type(StringNode), allocatable  :: Head
+   contains
+      procedure :: Read_Lines
+      procedure, nopass, private :: Read_One_Line
+      procedure :: Output_Lines
+      procedure, nopass, private :: Output_One_Line
+      procedure :: Sort_Lines
+      procedure, nopass, private :: Sort_Lines_By_Length, InsertNodeSorted
+   end type StringList
 
 contains
    ! Чтение исходного кода. 
-   function Read_Lines(InputFile) result (StrNode)
-      type(StringNode), allocatable :: StrNode
-      character(*), intent(in)      :: InputFile
-      integer                       :: In
+   subroutine Read_Lines(StrList, InputFile)
+      class(StringList) :: StrList
+      character(*), intent(in) :: InputFile
+      integer                  :: In
      
       open (file=InputFile, newunit=In)
-         call Read_One_Line(in, StrNode)
+         call Read_One_Line(in, StrList%Head)
       close (In)
-   end function Read_Lines
+   end subroutine Read_Lines
 
    ! Чтение строки исходного кода.
    recursive subroutine Read_One_Line(in, StrNode)
@@ -46,21 +55,21 @@ contains
 
 
    ! Вывод исходного кода.
-   subroutine Output_Lines(OutputFile, StrNode, List_name, Position)
+   subroutine Output_Lines(StrList, OutputFile, List_name, Position)
       character(*), intent(in)      :: OutputFile, List_name, Position
-      type(StringNode), allocatable :: StrNode 
+      class(StringList) :: StrList 
       integer                       :: Out
       
       open (file=OutputFile, position=Position, newunit=Out)
          write(Out, '(/a)') List_name
-         call Output_One_Line(Out, StrNode)
+         call Output_One_Line(Out, StrList%Head)
       close (Out)
    end subroutine Output_Lines
 
    ! Вывод строки исходного кода.
    recursive subroutine Output_One_Line(Out, StrNode)
       integer, intent(in)           :: Out
-      type(StringNode), allocatable, intent(in)  :: StrNode
+      type(StringNode), allocatable :: StrNode
       integer :: IO
 
       if (allocated(StrNode)) then
@@ -70,24 +79,25 @@ contains
       end if
    end subroutine Output_One_Line
 
-   subroutine Sort_Lines(head)
-      type(StringNode), allocatable :: head, sorted, temp
+   subroutine Sort_Lines(StrList)
+      class(StringList) :: StrList
+      type(StringNode), allocatable :: sorted, temp
 
-      if (allocated(head%Next)) then
+      if (allocated(StrList%Head%Next)) then
          ! Помещаем в sorted первый элемент изначального списка
          allocate(sorted)
-         sorted%String = head%String
+         sorted%String = StrList%Head%String
 
          ! Сдвигаем изначальный список на 1 элемент 
-         call move_alloc(head%Next, temp)
-         call move_alloc(temp, head)
+         call move_alloc(StrList%Head%Next, temp)
+         call move_alloc(temp, StrList%Head)
       else
          return
       end if
 
-      call Sort_Lines_By_Length(head, sorted)
+      call Sort_Lines_By_Length(StrList%Head, sorted)
 
-      call move_alloc(sorted, head)
+      call move_alloc(sorted, StrList%Head)
    end subroutine Sort_Lines
 
    ! Процедура сортировки списка вставками
@@ -102,7 +112,8 @@ contains
 
    ! Процедура вставки элемента в отсортированный список
    recursive subroutine InsertNodeSorted(notSorted, sorted)
-      type(StringNode), allocatable :: notSorted, sorted, temp
+      type(StringNode), allocatable, intent(inout) :: notSorted, sorted
+      type(StringNode), allocatable :: temp
 
       ! Найдем место для вставки и вставим
       if (len_trim(sorted%String) < len_trim(notSorted%String)) then
