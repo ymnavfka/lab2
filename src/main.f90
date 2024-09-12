@@ -7,21 +7,21 @@
 ! Указание: Элементом списка явлется строка. Применять функцию Len_trim
 
 program lab_2
-   use Environment
-   use String
+   use environment
+   use string
 
    implicit none
    character(:), allocatable :: input_file, output_file
-   type(StringList) :: StrList
+   type(string_list) :: str_list
    
    input_file  = "../data/input.txt"
    output_file = "output.txt"
 
-   call StrList%Read_Lines(input_file)
+   call str_list%read_lines(input_file)
 
-   call StrList%Output_Lines(output_file, "Исходный файл:", "rewind")
+   call str_list%output_lines(output_file, "исходный файл:", "rewind")
 
-   call StrList%Sort_Lines() 
+   call str_list%sort_lines() 
    
-   call StrList%Output_Lines(output_file, "Отсортированный файл:", "append")
+   call str_list%output_lines(output_file, "отсортированный файл:", "append")
 end program lab_2
